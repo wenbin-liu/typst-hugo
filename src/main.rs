@@ -1,7 +1,7 @@
 use std::process::exit;
 
 use crate::compile::CompileArgs;
-use clap::{Args, Command, FromArgMatches, Parser};
+use clap::Parser;
 use compile::get_compiler_actor;
 use tokio::runtime::Builder;
 use typst_hugo::*;

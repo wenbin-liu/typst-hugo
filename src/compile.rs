@@ -4,12 +4,12 @@ use std::{path::PathBuf, sync::Arc};
 use clap::{ArgAction, Parser};
 
 use log::debug;
-use reflexo_typst::config::entry::{EntryOpts, MEMORY_MAIN_ENTRY};
+use reflexo_typst::config::entry::EntryOpts;
 use reflexo_typst::config::CompileOpts;
 use reflexo_typst::features::{FeatureSet, DIAG_FMT_FEATURE};
 use reflexo_typst::{exporter_builtins::GroupExporter, path::PathClean};
 use reflexo_typst::{
-    CompilationHandle, CompileActor, CompileDriver, CompileExporter, CompileServerOpts, CompileStarter, CompiledArtifact, CompilerFeat, ConsoleDiagReporter, DiagnosticFormat, DynExporter, DynamicLayoutCompiler, EntryManager, EntryReader, GenericExporter, PureCompiler, ShadowApi, SystemCompilerFeat, TypstSystemUniverse, TypstSystemWorld
+    CompilationHandle, CompileActor, CompileServerOpts, CompileStarter, CompiledArtifact, CompilerFeat, ConsoleDiagReporter, DiagnosticFormat, DynExporter, DynamicLayoutCompiler, GenericExporter, SystemCompilerFeat, TypstSystemUniverse
 };
 use tokio::sync::mpsc;
 
@@ -51,8 +51,6 @@ pub struct CompileArgs {
 }
 
 
-type SystemDynamicLayoutCompiler =
-    DynamicLayoutCompiler<SystemCompilerFeat, PureCompiler<TypstSystemWorld>>;
 
 pub struct CompileHandler<F: CompilerFeat> {
     exporter: GroupExporter<CompiledArtifact<F>>,
@@ -119,7 +117,7 @@ pub fn get_compiler_actor(args:CompileArgs) -> Result<CompileActor<SystemCompile
 	..CompileOpts::default()
     }).map_err(|e| e.to_string())?;
 
-    let mut output_name = args.entry.clone();
+    let output_name = args.entry.clone();
     let output_name = output_name.file_stem().ok_or( "Invalid entry file")?;
     
     let verse = verse.with_entry_file(args.entry);
