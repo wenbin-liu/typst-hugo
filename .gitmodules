@@ -1,0 +1,3 @@
+[submodule "assets/artifacts"]
+	path = assets/artifacts
+	url = https://github.com/Myriad-Dreamin/typst.git
