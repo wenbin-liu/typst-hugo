@@ -9,22 +9,23 @@ use std::{path::PathBuf, sync::Arc};
 
 use chrono::{Date, DateTime, Local};
 use clap::{ArgAction, Parser};
+use serde::{Deserialize, Serialize};
 
 use handlebars::Handlebars;
 use log::debug;
 use reflexo_typst::config::entry::EntryOpts;
 use reflexo_typst::config::CompileOpts;
+use reflexo_typst::error::prelude::ZResult;
 use reflexo_typst::features::{CompileFeature, FeatureSet, DIAG_FMT_FEATURE};
 use reflexo_typst::{exporter_builtins::GroupExporter, path::PathClean};
 use reflexo_typst::{
-    CompilationHandle, CompileActor, CompileServerOpts, CompileStarter, CompiledArtifact, CompilerFeat, ConsoleDiagReporter, DiagnosticFormat, DynExporter, DynamicLayoutCompiler, GenericExporter, SystemCompilerFeat, TypstSystemUniverse
+    CompilationHandle, CompileActor, CompileServerOpts, CompileStarter, CompiledArtifact, CompilerFeat, ConsoleDiagReporter, DiagnosticFormat, DynExporter, DynamicLayoutCompiler, GenericExporter, SystemCompilerFeat, Transformer, TypstDocument, TypstSystemUniverse
 };
+use serde_json::Value;
 use tokio::sync::mpsc;
 use typst::foundations::{AutoValue, Label, Selector};
 
 use crate::CompileArgs;
-
-
 
 
 pub struct CompileHandler<F: CompilerFeat> {
@@ -55,12 +56,43 @@ impl<F: CompilerFeat + 'static> CompilationHandle<F> for CompileHandler<F> {
                     Arc::new((compiled.env.features.clone(), rep.clone())),
                 );
             } else {
-		render_html(compiled, &self.compile_args);	
+		render_html(compiled, &self.compile_args);
 	    }
         }
     }
 }
 
+
+pub fn generate_desc(verse: &dyn typst::World, doc: &TypstDocument) -> Result<String,String> {
+    let e = reflexo_typst::TextExporter::default();
+    let mut w = std::io::Cursor::new(Vec::new());
+
+    e.export(verse, (Arc::new(doc.clone()), &mut w))
+            .map_err(|e| format!("export text{e:?}"))?;
+
+    let w = w.into_inner();
+
+    String::from_utf8(w).map_err(|e|  format!("export text{e:?}"))
+}
+
+// Hugo frontmatter
+#[derive(Serialize, Deserialize)]
+struct FrontMatter {
+    title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]    
+    author: Option<Vec<String>>,
+    date: String,
+    #[serde(skip_serializing_if = "Option::is_none")]    
+    categories: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]    
+    tags:Option<Vec<String>>,
+}
+
+pub fn prepend_frontmatter(content: String, res: &Value) -> String {
+    let frontmatter: FrontMatter = serde_json::from_value(res.clone()).expect("Failed to create frontmatter");
+    let frontmatter = serde_json::to_value(frontmatter).unwrap();
+    frontmatter.to_string() + &content
+}
 fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &CompileArgs)  {
     let info = compiled.doc.as_ref().unwrap().info.clone();
     log::debug!("Compiled doc info:{:?}", info);
@@ -80,15 +112,23 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
     };
     res["date"] = typst_date.into();
     res["path_to_root"] = compile_args.path_to_root.clone().into();
-    res["rel_data_path"] = get_sir_name(&compile_args).into();
+    res["rel_data_path"] = derive_sir_name(&compile_args).into();
     res["renderer_module"] = "internal/typst_ts_renderer_bg.wasm".into();
+
+    let desc = generate_desc(compiled.world.as_ref(),
+			     compiled.doc.as_ref().unwrap()).expect("Generate description failed");
+    res["description"] = desc.into();
+
     
 
     let mut hb = Handlebars::new();
     hb.register_template_string("index",
 				String::from_utf8(include_bytes!("../themes/index.hbs").to_vec()).unwrap()).unwrap();
     
-    let html = hb.render("index",&res).unwrap();
+    let mut html = hb.render("index",&res).unwrap();
+    if compile_args.front_matter {
+	html = prepend_frontmatter(html, &res);
+    }
 
     let html_path = if compile_args.html_dir.is_dir() {
 	let mut name = compile_args.html_dir.join(compile_args.entry.file_stem().unwrap());
@@ -104,14 +144,14 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
 
 fn clean_path(args: CompileArgs) -> CompileArgs{
     let mut args = args;
-    args.root_dir = args.root_dir.clean();
+    args.root = args.root.clean();
     args.entry = args.entry.clean();
 
-    args.root_dir = if args.root_dir.is_absolute() {
-	args.root_dir
+    args.root = if args.root.is_absolute() {
+	args.root
     } else {
         let cwd = std::env::current_dir().expect("Can't get the pwd");
-        cwd.join(args.root_dir).clean()
+        cwd.join(args.root).clean()
     };
 
     args.entry = if args.entry.is_absolute() {
@@ -124,7 +164,9 @@ fn clean_path(args: CompileArgs) -> CompileArgs{
     args
 }
 
-fn get_sir_name(args: &CompileArgs) -> String {
+
+// Derive SIR filename without prefix and extension, only stem
+fn derive_sir_name(args: &CompileArgs) -> String {
     let output_name = args.entry.clone();
     let output_name = output_name.file_stem().expect( "Invalid entry file");
     
@@ -142,11 +184,13 @@ pub fn get_compiler_actor(args:CompileArgs) -> Result<CompileActor<SystemCompile
     debug!("font-path:{:?}", args.font_paths);
     let args = clean_path(args);
     let verse = TypstSystemUniverse::new(CompileOpts {
-	entry: EntryOpts::new_workspace(args.root_dir.clone()),
+	entry: EntryOpts::new_workspace(args.root.clone()),
 	font_paths: args.font_paths.clone(),
         with_embedded_fonts: typst_assets::fonts().map(Cow::Borrowed).collect(),
 	..CompileOpts::default()
     }).map_err(|e| e.to_string())?;
+
+    
 
     let output_name = args.entry.clone();
     let output_name = output_name.file_stem().ok_or( "Invalid entry file")?;

@@ -11,7 +11,7 @@ pub struct CompileArgs {
     pub entry: PathBuf,
 
     #[clap(default_value = "./", short, long)]
-    pub root_dir: PathBuf,
+    pub root: PathBuf,
 
     #[clap(long, default_value = "./")]
     pub html_dir: PathBuf,
@@ -27,6 +27,9 @@ pub struct CompileArgs {
 
     #[clap(long)]
     pub watch: bool,
+
+    #[clap(long, default_value = "true")]
+    pub front_matter: bool,
     
     #[clap(
         long = "font-path",
@@ -35,10 +38,6 @@ pub struct CompileArgs {
         action = ArgAction::Append,
     )]
     pub font_paths: Vec<PathBuf>,
-
-    /// Specify a filter to only load files with a specific extension.
-    #[clap(long, default_value = "^(player.bilibili.com)$")]
-    pub allowed_url_source: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, Parser)]

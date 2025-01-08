@@ -94,7 +94,7 @@ async fn serve(args: ServeArgs) {
         .parse()
 	.expect("Can't parse address");
 
-    log::info!("Server listening on http://{:?}", http_addr);
+    log::info!("Server listening on http://{:?}/{}.html", http_addr,args.compile.entry.file_stem().unwrap().to_str().unwrap());
 
     let server = warp::serve({
         let cors =

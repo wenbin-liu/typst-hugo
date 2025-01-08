@@ -3802,6 +3802,7 @@ dependencies = [
  "log",
  "reflexo-typst",
  "reflexo-vec2svg",
+ "serde",
  "serde_json",
  "tokio",
  "typst",
