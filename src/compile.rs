@@ -1,29 +1,22 @@
 use std::borrow::Cow;
-use std::ffi::OsStr;
 use std::fs;
-use std::ops::Deref;
-use std::path::Path;
-use std::slice::SliceIndex;
-use std::str::FromStr;
-use std::{path::PathBuf, sync::Arc};
+use std::sync::Arc;
 
-use chrono::{Date, DateTime, Local};
-use clap::{ArgAction, Parser};
+use chrono::Local;
 use serde::{Deserialize, Serialize};
 
 use handlebars::Handlebars;
 use log::debug;
 use reflexo_typst::config::entry::EntryOpts;
 use reflexo_typst::config::CompileOpts;
-use reflexo_typst::error::prelude::ZResult;
-use reflexo_typst::features::{CompileFeature, FeatureSet, DIAG_FMT_FEATURE};
+use reflexo_typst::features::{FeatureSet, DIAG_FMT_FEATURE};
 use reflexo_typst::{exporter_builtins::GroupExporter, path::PathClean};
 use reflexo_typst::{
     CompilationHandle, CompileActor, CompileServerOpts, CompileStarter, CompiledArtifact, CompilerFeat, ConsoleDiagReporter, DiagnosticFormat, DynExporter, DynamicLayoutCompiler, GenericExporter, SystemCompilerFeat, Transformer, TypstDocument, TypstSystemUniverse
 };
 use serde_json::Value;
 use tokio::sync::mpsc;
-use typst::foundations::{AutoValue, Label, Selector};
+use typst::foundations::{Label, Selector};
 
 use crate::CompileArgs;
 

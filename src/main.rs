@@ -1,10 +1,8 @@
-use std::thread::spawn;
 use std::{fs, net::SocketAddr, path::PathBuf, process::exit};
 
 use crate::CompileArgs;
 use clap::Parser;
 use compile::get_compiler_actor;
-use reflexo_typst::error::prelude::ZResult;
 use tokio::runtime::Builder;
 use typst_hugo::*;
 use warp::Filter;
