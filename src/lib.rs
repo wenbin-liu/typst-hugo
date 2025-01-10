@@ -59,6 +59,13 @@ pub struct ServeArgs {
     pub addr: String,
 }
 
+#[derive(Default, Debug, Clone, Parser)]
+#[clap(next_help_heading = "Template options")]
+pub struct TemplateArgs {
+    #[clap(default_value = "./")]
+    pub path: PathBuf,
+}
+
 
 #[derive(Debug, Parser)]
 #[clap(name = "typst-hugo", version = "0.1.0")]
@@ -69,16 +76,20 @@ pub struct Opts {
 
 #[derive(Debug, Subcommand)]
 #[clap(
-    about = "Compile tyspt to html page",
+    about = "Compile tyspt to html page for hugo",
     after_help = "",
     next_display_order = None
 )]
 #[allow(clippy::large_enum_variant)]
 pub enum Subcommands {
-    #[clap(about = "build html")]
+    #[clap(about = "Build html")]
     Compile(CompileArgs),
-    #[clap(about = "serve book.")]
+    #[clap(about = "Serve html")]
     Serve(ServeArgs),
+
+    #[clap(about = "Generate typst template", name="template")]
+    TypstTemplate(TemplateArgs),
+    
 }
 
 

@@ -30,6 +30,9 @@ fn main() {
 		}
 		serve(args).await
 	    }
+	    Some(Subcommands::TypstTemplate(args)) => {
+		generate_typst_template(args)
+	    }
 	    None => build(CompileArgs::default()).await,
 	};
 	()
@@ -111,4 +114,43 @@ async fn serve(args: ServeArgs) {
     server.run(http_addr).await;
 
     exit(0);
+}
+
+fn generate_typst_template(args:TemplateArgs) {
+    let path = args.path.join("template");
+    if !path.exists() {
+	fs::create_dir_all(path.clone()).unwrap();
+    }
+    let path =         path.join("hugo_template.typ");
+    if path.exists() {
+	log::error!("hugo_template.typ exists!");
+	exit(1);
+    }
+    fs::write(
+	path,
+        include_bytes!("../template/hugo_template.typ"),
+    ).unwrap();
+
+    let path = args.path.join("main.typ");
+    if path.exists() {
+	log::error!("main.typ exists!");
+	exit(1);
+    }
+    
+    let typst_main =             r##"#import "template/hugo_template.typ": project
+#show: project.with(
+    title: [Types Template],
+    date: datetime.today(),
+    tags:("Typst","Rust"),
+    categories:("Computers",)
+)
+
+= Section 1
+Hello Typst
+"##;
+    fs::write(
+	path,
+	typst_main,
+    ).unwrap();
+    
 }
