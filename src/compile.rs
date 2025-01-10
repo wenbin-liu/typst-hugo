@@ -15,6 +15,8 @@ use reflexo_typst::{
     CompilationHandle, CompileActor, CompileServerOpts, CompileStarter, CompiledArtifact, CompilerFeat, ConsoleDiagReporter, DiagnosticFormat, DynExporter, DynamicLayoutCompiler, GenericExporter, SystemCompilerFeat, Transformer, TypstDocument, TypstSystemUniverse
 };
 use serde_json::Value;
+use serde_with::{serde_as, OneOrMany, DefaultOnError};
+use serde_with::formats::PreferMany;
 use tokio::sync::mpsc;
 use typst::foundations::{Label, Selector};
 
@@ -69,16 +71,23 @@ pub fn generate_desc(verse: &dyn typst::World, doc: &TypstDocument) -> Result<St
 }
 
 // Hugo frontmatter
+#[serde_as]
 #[derive(Serialize, Deserialize)]
 struct FrontMatter {
     title: String,
-    #[serde(skip_serializing_if = "Option::is_none")]    
-    author: Option<Vec<String>>,
     date: String,
-    #[serde(skip_serializing_if = "Option::is_none")]    
-    categories: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]    
-    tags:Option<Vec<String>>,
+
+    #[serde_as(deserialize_as = "DefaultOnError<OneOrMany<_, PreferMany>>")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    author: Vec<String>,
+
+    #[serde_as(deserialize_as = "DefaultOnError<OneOrMany<_, PreferMany>>")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    categories: Vec<String>,
+
+    #[serde_as(deserialize_as = "DefaultOnError<OneOrMany<_, PreferMany>>")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    tags:Vec<String>,
 }
 
 pub fn prepend_frontmatter(content: String, res: &Value) -> String {
@@ -91,8 +100,7 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
     log::debug!("Compiled doc info:{:?}", info);
     let meta = compiled.doc.as_ref().unwrap().introspector.query_first(&Selector::Label(Label::new("typst_hugo_0xbafe783")));
     log::debug!("Meta Data:{:?}", meta);
-    let mut res = serde_json::to_value(&meta)
-        .unwrap();
+    let mut res = serde_json::to_value(&meta).expect("Failed to get frontmatter");
     let mut res = res["value"].take();
     res["title"] = info.title.unwrap_or_default().to_string().into();
     res["author"] = info.author.iter().map(|x|x.to_string()).collect();

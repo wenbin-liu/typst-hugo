@@ -3804,6 +3804,7 @@ dependencies = [
  "reflexo-vec2svg",
  "serde",
  "serde_json",
+ "serde_with",
  "tokio",
  "typst",
  "typst-assets",

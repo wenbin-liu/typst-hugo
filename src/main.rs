@@ -73,7 +73,10 @@ fn prepare_asset(asset_dir: &PathBuf) {
 
 }
 async fn build(args: CompileArgs) {
-    prepare_asset(&args.asset_dir);
+    if !args.no_assets {
+        prepare_asset(&args.asset_dir);        
+    }
+
     let actor = get_compiler_actor(args).unwrap_or_else(|x| {
 	log::error!("{}", x);
 	exit(1);
