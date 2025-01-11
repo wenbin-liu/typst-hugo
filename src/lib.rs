@@ -32,8 +32,8 @@ pub struct CompileArgs {
     pub front_matter: bool,
 
     #[clap(long, default_value = "false")]
-    pub no_assets: bool, 
-    
+    pub no_assets: bool,
+
     #[clap(
         long = "font-path",
         env = "TYPST_FONT_PATHS", 
@@ -66,7 +66,6 @@ pub struct TemplateArgs {
     pub path: PathBuf,
 }
 
-
 #[derive(Debug, Parser)]
 #[clap(name = "typst-hugo", version = "0.1.0")]
 pub struct Opts {
@@ -87,9 +86,6 @@ pub enum Subcommands {
     #[clap(about = "Serve html")]
     Serve(ServeArgs),
 
-    #[clap(about = "Generate typst template", name="template")]
+    #[clap(about = "Generate typst template", name = "template")]
     TypstTemplate(TemplateArgs),
-    
 }
-
-
