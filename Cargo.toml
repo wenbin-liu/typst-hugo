@@ -2,6 +2,7 @@
 name = "typst-hugo"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/wenbin-liu/typst-hugo"
 
 [[bin]]
 name = "typst-hugo"
@@ -25,5 +26,10 @@ serde_with = "3.12.0"
 [patch.crates-io]
 typst = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
 typst-syntax = { git = "https://github.com/Myriad-Dreamin/typst", tag = "typst.ts/v0.5.0-rc9" }
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
 
 
