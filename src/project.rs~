@@ -1,9 +1,0 @@
-    pub tr: TypstRenderer,
-    pub hr: HtmlRenderer,
-
-    pub book_meta: Option<BookMeta>,
-    pub build_meta: Option<BuildMeta>,
-    pub chapters: Vec<DataDict>,
-
-    pub dest_dir: PathBuf,
-    pub path_to_root: String,
