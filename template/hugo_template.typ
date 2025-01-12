@@ -2,8 +2,8 @@
 #import templates: book-theme-from, heading-hash
 #import "@preview/codly:1.2.0": codly-init
 
-#let project(title: [], auther: (), date: none, categories: (), tags: (), lang: "en", region: "us", body) = {
-  set document(title: title, date: date, author: auther)
+#let project(title: [], author: (), date: none, categories: (), tags: (), lang: "en", region: "us", body) = {
+  set document(title: title, date: date, author: author)
 
   let raw-meta = (categories: categories, tags: tags);
 
@@ -73,45 +73,3 @@
   [#metadata(raw-meta) <typst_hugo_0xbafe783>]
   body
 }
-
-#show: project.with(title: [])
-= Hello
-
-This is a test
-
-$ f(x) = cos x $
-
-```c
-int main() {
-}
-```
-
-jlkjlj
-
-jljlj hkhk
-
-THis is a new file
-
-jkjjk
-
-Definitely new
-
-This is what youneed
-
-this
-
-jklj
-
-jlkj
-
-Uglyjj
-
-jkljjlkjlj
-
-= Ths is a new file <sa>
-
-You should tirgger
-#lorem(40)
-
-中文支持 jlja 支持= 中文标题
-
