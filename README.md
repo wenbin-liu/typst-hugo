@@ -22,3 +22,8 @@ cargo install --git https://github.com/wenbin-liu/typst-hugo.git --locked
 typst-hugo compile ./main.typ --html-dir ../content/posts/ --asset-dir ../static/typst-ts --path-to-root /typst-ts/
 ```
 6. `hugo`
+
+## About Dark Mode
+The dark mode is only suited for MeME theme. If you
+want to use dark mode in your theme. You need to
+implement ` window.getTypstTheme` and invoke `window.typstChangeTheme()` when you toggle dark/light change in the output html.

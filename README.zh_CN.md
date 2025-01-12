@@ -23,3 +23,6 @@ cargo install --git https://github.com/wenbin-liu/typst-hugo.git --locked
 typst-hugo compile ./main.typ --html-dir ../content/posts/ --asset-dir ../static/typst-ts --path-to-root /typst-ts/
 ```
 6. `hugo`
+
+## 黑暗模式
+目前黑暗模式只适配了MeME 主题，如果想要适配其他主题，则需手动实现`window.getTypstTheme` 函数， 并且在切换黑暗/白天模式时调用 `window.typstChangeTheme()` 函数
