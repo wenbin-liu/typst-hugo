@@ -21,8 +21,11 @@ use serde_with::formats::PreferMany;
 use serde_with::{serde_as, DefaultOnError, OneOrMany};
 use tokio::sync::mpsc;
 use typst::foundations::{Label, Selector};
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::CompileArgs;
+
+const FRONTMATTER_SUMMARY_LEN:usize = 150;
 
 pub struct CompileHandler<F: CompilerFeat> {
     compile_args: CompileArgs,
@@ -88,7 +91,6 @@ struct FrontMatter {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     tags: Vec<String>,
 
-    #[serde_as(deserialize_as = "DefaultOnError")]
     #[serde(skip_serializing_if = "Option::is_none")]
     draft: Option<bool>,
 
@@ -136,10 +138,13 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
     res["rel_data_path"] = derive_sir_name(&compile_args).into();
     res["renderer_module"] = "internal/typst_ts_renderer_bg.wasm".into();
 
-    let desc = generate_desc(compiled.world.as_ref(), compiled.doc.as_ref().unwrap())
+    let mut desc = generate_desc(compiled.world.as_ref(), compiled.doc.as_ref().unwrap())
         .expect("Generate description failed");
     res["description"] = desc.clone().into();
-    res["summary"] = desc.into();
+
+    let upto = desc.char_indices().map(|(i, _)| i).nth(FRONTMATTER_SUMMARY_LEN).unwrap_or(desc.len());
+    let sum = desc.split_word_bounds().take(FRONTMATTER_SUMMARY_LEN).collect::<Vec<&str>>();    
+    res["summary"] = sum.join("").into();
 
     let mut hb = Handlebars::new();
     hb.register_template_string(

@@ -12,7 +12,7 @@ fn main() {
     env_logger::builder()
         .filter_module("typst", log::LevelFilter::Warn)
         .filter_module("reflexo", log::LevelFilter::Info)
-        .filter_module("typst_hugo", log::LevelFilter::Debug)
+        .filter_module("typst_hugo", log::LevelFilter::Info)
         .init();
 
     let opts = Opts::parse();
@@ -118,7 +118,8 @@ fn generate_typst_template(args: TemplateArgs) {
         exit(1);
     }
     fs::write(path, include_bytes!("../template/hugo_template.typ")).unwrap();
-
+    log::info!("template/hugo_template.typ created");
+    
     let path = args.path.join("main.typ");
     if path.exists() {
         log::error!("main.typ exists!");
@@ -137,4 +138,6 @@ fn generate_typst_template(args: TemplateArgs) {
 Hello Typst
 "##;
     fs::write(path, typst_main).unwrap();
+    log::info!("main.typ created");
+    
 }

@@ -2,10 +2,10 @@
 #import templates: book-theme-from, heading-hash
 #import "@preview/codly:1.2.0": codly-init
 
-#let project(title: [], author: (), date: none, categories: (), tags: (), lang: "en", region: "us", body) = {
+#let project(title: [], author: (), date: none, draft:none, categories: (), tags: (), lang: "en", region: "us", body) = {
   set document(title: title, date: date, author: author)
 
-  let raw-meta = (categories: categories, tags: tags);
+  let raw-meta = (categories: categories, tags: tags, draft: draft);
 
   let themes = (
     light: (color-scheme: "light", main-color: rgb("#000"), dash-color: rgb("#20609f")),

@@ -3808,6 +3808,7 @@ dependencies = [
  "tokio",
  "typst",
  "typst-assets",
+ "unicode-segmentation",
  "warp",
 ]
 
