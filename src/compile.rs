@@ -87,6 +87,14 @@ struct FrontMatter {
     #[serde_as(deserialize_as = "DefaultOnError<OneOrMany<_, PreferMany>>")]
     #[serde(skip_serializing_if = "Vec::is_empty")]
     tags: Vec<String>,
+
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    draft: Option<bool>,
+
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    #[serde(skip_serializing_if = "String::is_empty")]
+    summary: String,
 }
 
 pub fn prepend_frontmatter(content: String, res: &Value) -> String {
@@ -130,7 +138,8 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
 
     let desc = generate_desc(compiled.world.as_ref(), compiled.doc.as_ref().unwrap())
         .expect("Generate description failed");
-    res["description"] = desc.into();
+    res["description"] = desc.clone().into();
+    res["summary"] = desc.into();
 
     let mut hb = Handlebars::new();
     hb.register_template_string(
