@@ -45,7 +45,7 @@ pub struct CompileArgs {
     pub no_assets: bool,
 
     #[clap(long, short, default_value = "meme")]
-    pub darkmode_callback:DarkModeAvailable,
+    pub darkmode:DarkModeAvailable,
         
     #[clap(
         long = "font-path",

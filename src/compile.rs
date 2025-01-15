@@ -171,7 +171,7 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
         String::from_utf8(include_bytes!("../themes/index.hbs").to_vec()).unwrap(),
     )
 	.unwrap();
-    let darkmode = gen_darkmode_callback(&compile_args.darkmode_callback);
+    let darkmode = gen_darkmode_callback(&compile_args.darkmode);
 
     res["darkmode"] = darkmode.into();
     let mut html = hb.render("index", &res).unwrap();
