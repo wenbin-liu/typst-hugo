@@ -24,6 +24,15 @@ typst-hugo compile ./main.typ --html-dir ../content/posts/ --asset-dir ../static
 6. `hugo`
 
 ## About Dark Mode
-The dark mode is only suited for MeME theme. If you
+The dark mode is only suited for MeME/Blowfish theme. If you
 want to use dark mode in your theme. You need to
 implement ` window.getTypstTheme` and invoke `window.typstChangeTheme()` when you toggle dark/light change in the output html.
+
+## Tested Theme
+- [x] MeME
+- [x] Blowfish
+
+## Acknowledgments
+Many code are borrowed directly fron shiroa and typst.ts. Thanks to @Myriad-Dreamin.
+- [typst.ts](https://github.com/Myriad-Dreamin/typst.ts)
+- [shiroa](https://github.com/Myriad-Dreamin/shiroa)
