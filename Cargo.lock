@@ -3910,7 +3910,7 @@ checksum = "4fe00da1b24da2c4a7da532fc33d0c3bd43a902ca4c408ee2c36eabe70f2f4ba"
 
 [[package]]
 name = "typst-hugo"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "chrono",
  "clap",
