@@ -2,7 +2,17 @@ pub mod compile;
 
 use std::path::PathBuf;
 
-use clap::{ArgAction, Parser, Subcommand};
+use clap::{ArgAction, Parser, Subcommand, ValueEnum};
+use serde::Serialize;
+
+#[derive(Default, Debug, Clone, Parser, Serialize, ValueEnum)]
+#[serde(rename_all = "lowercase")]
+pub enum DarkModeAvailable {
+    #[default]
+    Meme,
+    Blowfish,
+}
+
 
 #[derive(Default, Debug, Clone, Parser)]
 #[clap(next_help_heading = "Compile options")]
@@ -34,6 +44,9 @@ pub struct CompileArgs {
     #[clap(long, default_value = "false")]
     pub no_assets: bool,
 
+    #[clap(long, short, default_value = "meme")]
+    pub darkmode_callback:DarkModeAvailable,
+        
     #[clap(
         long = "font-path",
         env = "TYPST_FONT_PATHS", 

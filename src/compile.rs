@@ -3,6 +3,7 @@ use std::fs;
 use std::sync::Arc;
 
 use chrono::Local;
+use rust_embed::Embed;
 use serde::{Deserialize, Serialize};
 
 use handlebars::Handlebars;
@@ -23,14 +24,19 @@ use tokio::sync::mpsc;
 use typst::foundations::{Label, Selector};
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::CompileArgs;
+use crate::{CompileArgs, DarkModeAvailable};
 
 const FRONTMATTER_SUMMARY_LEN:usize = 150;
+
+#[derive(Embed)]
+#[folder = "themes/darkmode_callback"]
+pub struct DarkmodeAsset;
 
 pub struct CompileHandler<F: CompilerFeat> {
     compile_args: CompileArgs,
     exporter: GroupExporter<CompiledArtifact<F>>,
 }
+
 
 impl<F: CompilerFeat + 'static> CompilationHandle<F> for CompileHandler<F> {
     fn status(&self, _revision: usize, _rep: reflexo_typst::CompileReport) {}
@@ -105,6 +111,19 @@ pub fn prepend_frontmatter(content: String, res: &Value) -> String {
     let frontmatter = serde_json::to_value(frontmatter).unwrap();
     frontmatter.to_string() + &content
 }
+
+fn gen_darkmode_callback(theme: &DarkModeAvailable) -> String {
+    let mut hb = Handlebars::new();
+  
+    let theme = format!("{:?}",theme).to_lowercase();
+    let html = DarkmodeAsset::get(&format!("{}.hbs", theme)).expect("No darkmode callback script found");
+    hb.register_template_string("darkmode",
+				std::str::from_utf8(html.data.as_ref()).expect("Invalid unicode found in darkmode template file")).unwrap();
+
+    let emptydata: [u8;0] = [];
+    hb.render("darkmode",&emptydata).unwrap()
+}
+
 fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &CompileArgs) {
     let info = compiled.doc.as_ref().unwrap().info.clone();
     log::debug!("Compiled doc info:{:?}", info);
@@ -151,8 +170,10 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
         "index",
         String::from_utf8(include_bytes!("../themes/index.hbs").to_vec()).unwrap(),
     )
-    .unwrap();
+	.unwrap();
+    let darkmode = gen_darkmode_callback(&compile_args.darkmode_callback);
 
+    res["darkmode"] = darkmode.into();
     let mut html = hb.render("index", &res).unwrap();
     if compile_args.front_matter {
         html = prepend_frontmatter(html, &res);

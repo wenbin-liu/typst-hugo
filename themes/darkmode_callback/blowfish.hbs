@@ -1,0 +1,35 @@
+<script>
+    let dom = document.documentElement  // The dom containing theme infomation
+    window.getTypstTheme = function getTypstTheme() {
+        var _theme;
+        _theme = dom.getAttribute("class"); // Depends on the hugo theme used
+        if (_theme === undefined || _theme === null) {
+            _theme = default_theme;
+        }
+        if (_theme.includes("dark")) {
+            _theme = "dark";
+        } else {
+            _theme = "light"
+        }
+        window.typstBookTheme = _theme;
+        return _theme;
+    }
+    window.isTypstLightTheme = function isLightTheme(theme) {
+        return theme === 'light';
+    }
+    var theme = getTypstTheme();
+    // Create a MutationObserver instance
+    const observer = new MutationObserver((mutationsList) => {
+        for (const mutation of mutationsList) {
+            if (mutation.type === 'attributes') {
+                window.typstChangeTheme();
+            }
+        }
+    });
+
+    // Configure the observer to watch for attribute changes
+    observer.observe(dom, {
+        attributes: true, // Observe attribute changes
+        attributeFilter: ['class'], // (Optional) Observe specific attributes, e.g., 'lang'
+    });
+</script>
