@@ -175,7 +175,7 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
 
     res["darkmode"] = darkmode.into();
     let mut html = hb.render("index", &res).unwrap();
-    if compile_args.front_matter {
+    if !compile_args.no_frontmatter {
         html = prepend_frontmatter(html, &res);
     }
 

@@ -38,8 +38,8 @@ pub struct CompileArgs {
     #[clap(long)]
     pub watch: bool,
 
-    #[clap(long, default_value = "true")]
-    pub front_matter: bool,
+    #[clap(long, default_value = "false")]
+    pub no_frontmatter: bool,
 
     #[clap(long, default_value = "false")]
     pub no_assets: bool,
