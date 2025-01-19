@@ -2,17 +2,33 @@
 #import templates: book-theme-from, heading-hash
 #import "@preview/codly:1.2.0": codly-init
 
-#let project(title: [], author: (), date: none, draft:none, categories: (), tags: (), lang: "en", region: "us", body) = {
+#let project(
+  title: "",
+  author: (),
+  date: none,
+  draft: none,
+  categories: (),
+  tags: (),
+  lang: "en",
+  region: "us",
+  slug: none,
+  body,
+) = {
   set document(title: title, date: date, author: author)
 
-  let raw-meta = (categories: categories, tags: tags, draft: draft);
+  let raw-meta = (
+    categories: categories,
+    tags: tags,
+    draft: draft,
+    slug: slug,
+  )
 
   let themes = (
     light: (color-scheme: "light", main-color: rgb("#000"), dash-color: rgb("#20609f")),
     dark: (color-scheme: "dark", main-color: rgb("#c5c5c5"), dash-color: rgb("#0096cf")),
   )
-  let main-font = ("Libertinus Serif")
-  let code-font = ("BlexMono Nerd Font Mono", "DejaVu Sans Mono",)
+  let main-font = "Libertinus Serif"
+  let code-font = ("BlexMono Nerd Font Mono", "DejaVu Sans Mono")
 
   let theme-target = if target.contains("-") {
     target.split("-").at(1)
@@ -28,18 +44,22 @@
   set text(lang: lang, region: region)
   set text(font: main-font, size: main-size, fill: main-color)
 
-  set page(width: get-page-width(), height: auto, margin: (
-    // reserved beautiful top margin
-    top: 20pt,
-    // reserved for our heading style.
-    // If you apply a different heading style, you may remove it.
-    left: 20pt,
-    right: 5pt,
-    // Typst is setting the page's bottom to the baseline of the last line of text. So bad :(.
-    bottom: 0.5em,
-    // remove rest margins.
-    rest: 0pt,
-  ))
+  set page(
+    width: get-page-width(),
+    height: auto,
+    margin: (
+      // reserved beautiful top margin
+      top: 20pt,
+      // reserved for our heading style.
+      // If you apply a different heading style, you may remove it.
+      left: 20pt,
+      right: 5pt,
+      // Typst is setting the page's bottom to the baseline of the last line of text. So bad :(.
+      bottom: 0.5em,
+      // remove rest margins.
+      rest: 0pt,
+    ),
+  )
   set par(justify: true)
 
   // Set main spacing
