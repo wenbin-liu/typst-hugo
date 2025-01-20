@@ -26,7 +26,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{CompileArgs, DarkModeAvailable};
 
-const FRONTMATTER_SUMMARY_LEN:usize = 150;
+const FRONTMATTER_SUMMARY_LEN: usize = 150;
 
 #[derive(Embed)]
 #[folder = "themes/darkmode_callback"]
@@ -36,7 +36,6 @@ pub struct CompileHandler<F: CompilerFeat> {
     compile_args: CompileArgs,
     exporter: GroupExporter<CompiledArtifact<F>>,
 }
-
 
 impl<F: CompilerFeat + 'static> CompilationHandle<F> for CompileHandler<F> {
     fn status(&self, _revision: usize, _rep: reflexo_typst::CompileReport) {}
@@ -103,6 +102,9 @@ struct FrontMatter {
     #[serde_as(deserialize_as = "DefaultOnError")]
     #[serde(skip_serializing_if = "String::is_empty")]
     summary: String,
+
+    #[serde(skip_serializing_if = "String::is_empty")]
+    slug: String,
 }
 
 pub fn prepend_frontmatter(content: String, res: &Value) -> String {
@@ -114,14 +116,19 @@ pub fn prepend_frontmatter(content: String, res: &Value) -> String {
 
 fn gen_darkmode_callback(theme: &DarkModeAvailable) -> String {
     let mut hb = Handlebars::new();
-  
-    let theme = format!("{:?}",theme).to_lowercase();
-    let html = DarkmodeAsset::get(&format!("{}.hbs", theme)).expect("No darkmode callback script found");
-    hb.register_template_string("darkmode",
-				std::str::from_utf8(html.data.as_ref()).expect("Invalid unicode found in darkmode template file")).unwrap();
 
-    let emptydata: [u8;0] = [];
-    hb.render("darkmode",&emptydata).unwrap()
+    let theme = format!("{:?}", theme).to_lowercase();
+    let html =
+        DarkmodeAsset::get(&format!("{}.hbs", theme)).expect("No darkmode callback script found");
+    hb.register_template_string(
+        "darkmode",
+        std::str::from_utf8(html.data.as_ref())
+            .expect("Invalid unicode found in darkmode template file"),
+    )
+    .unwrap();
+
+    let emptydata: [u8; 0] = [];
+    hb.render("darkmode", &emptydata).unwrap()
 }
 
 fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &CompileArgs) {
@@ -136,7 +143,25 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
     log::debug!("Meta Data:{:?}", meta);
     let mut res = serde_json::to_value(&meta).expect("Failed to get frontmatter");
     let mut res = res["value"].take();
-    res["title"] = info.title.unwrap_or_default().to_string().into();
+    let title = info.title.unwrap_or_default();
+    res["title"] = title.to_string().into();
+    // if null then derive from title, connect with dash, ignore whitespace
+    res["slug"] = res["slug"]
+        .as_str()
+        .unwrap_or(
+            &title
+                .to_string()
+                .graphemes(true)
+                .map(|x| {
+                    if x == " " {
+                        "-".to_string()
+                    } else {
+                        x.to_lowercase()
+                    }
+                })
+                .collect::<String>(),
+        )
+        .into();
     res["author"] = info.author.iter().map(|x| x.to_string()).collect();
     let typst_date = info
         .date
@@ -161,8 +186,15 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
         .expect("Generate description failed");
     res["description"] = desc.clone().into();
 
-    let upto = desc.char_indices().map(|(i, _)| i).nth(FRONTMATTER_SUMMARY_LEN).unwrap_or(desc.len());
-    let sum = desc.split_word_bounds().take(FRONTMATTER_SUMMARY_LEN).collect::<Vec<&str>>();    
+    let upto = desc
+        .char_indices()
+        .map(|(i, _)| i)
+        .nth(FRONTMATTER_SUMMARY_LEN)
+        .unwrap_or(desc.len());
+    let sum = desc
+        .split_word_bounds()
+        .take(FRONTMATTER_SUMMARY_LEN)
+        .collect::<Vec<&str>>();
     res["summary"] = sum.join("").into();
 
     let mut hb = Handlebars::new();
@@ -170,7 +202,7 @@ fn render_html<F: CompilerFeat>(compiled: &CompiledArtifact<F>, compile_args: &C
         "index",
         String::from_utf8(include_bytes!("../themes/index.hbs").to_vec()).unwrap(),
     )
-	.unwrap();
+    .unwrap();
     let darkmode = gen_darkmode_callback(&compile_args.darkmode);
 
     res["darkmode"] = darkmode.into();
