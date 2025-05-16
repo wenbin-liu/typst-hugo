@@ -3,4 +3,4 @@
 	url = https://github.com/Myriad-Dreamin/typst.git
 [submodule "typst-hugo-demo"]
 	path = typst-hugo-demo
-	url = git@github.com:wenbin-liu/typst-hugo-demo.git
+	url = https://github.com/wenbin-liu/typst-hugo-demo.git
